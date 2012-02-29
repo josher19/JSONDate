@@ -1,0 +1,99 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>JSONDate Tester for Android Phonegap</title>
+<script type="text/javascript" charset="utf-8" src="js/phonegap.js"></script>
+<script type="text/javascript" charset="utf-8" src="js/sugar-1.2.2.min.js"></script>
+
+<script type="text/javascript">
+	document.addEventListener("deviceready", appReady, false);
+
+	function appReady() {
+	}
+	/*
+	document.addEventListener("deviceready", appReady, false);
+        */
+</script>
+<!-- todo: move to CSS -->
+<style type="text/css">
+body { font-size: 1.5em; }
+</style>
+</head>
+<body>
+	<h1>Hello JSONDate Tester</h1>
+	<p>
+        <!-- todo: move onchange events to Javascript -->
+	<form onsubmit="doChange(this.datestr.value); return false;">
+	<fieldset>
+	<label for="datestr"><input id="datestr" name="datestr" value="2011-01-01" onchange="doChange(this.value)"/>
+	</fieldset>
+	</form>
+
+	<p id='nowId'>
+	</p>
+        <!-- inlined JSONDate.js -->
+	<script>
+
+JSONDate = (function() {
+	function isoDate(r, tz) {
+		// log(arguments);
+		return fixTimezone(new Date(r[0], r[1] - 1, r[2], r[3], r[4], r[5], r[6] || 0), tz);
+	}
+
+	function noop(it) {
+		return it;
+	}
+
+	function asDate(strValue, tz) {
+		return isoDate(strValue.split(/[-T:Z\."]/).filter(noop), tz);
+	}
+
+	// date.setHours(date.getUTCHours()); date.setUTCMinutes(date.getUTCMinutes());
+	function fixTimezone(date, tz) {
+		if (null == tz) {
+			tz = date.getTimezoneOffset() / 60 || 0;
+		}
+		if (tz) {
+			date.setHours(date.getHours() - tz);
+		}
+		return date;
+	}
+	function isBadDate(d) { 
+		return String(d) === "Invalid Date"  || String(d.getFullYear()) === "NaN"; 
+	}
+	function fromJSON(dstr) {
+		var d = Date.create ? Date.create(dstr) : new Date(dstr);
+		if (isBadDate(d)) {
+			d = asDate(dstr);
+		}
+		return d;
+	}
+
+	return { fromJSON: fromJSON, isInvalidDate:isBadDate, toDate:asDate }
+})();
+
+// todo: Unit Tests, decide about timezone support
+/*
+    JSONDate.fromJSON( d.toJSON() ) == d // true for all valid Dates d
+    JSONDate.fromJSON( dstr ).toJSON() == dstr // true for all valid JSON datestrings.
+*/
+
+
+// function dateFromJson(dstr) { return new Date(dstr.replace(/-/, "/").replace(/-/, "/").replace(/T/, " ")); }
+</script>
+
+	<script>
+	function doChange(that) {	    
+		var dd=that || "2012-01-01T01:01:01.587Z", d=new Date(dd), j=JSON.parse(JSON.stringify(d));
+		function log(msg) { if (window.console) console.log(msg); return msg; }
+		function dateFromJson(dstr) { return new Date(log(String(dstr).substring(0,10).replace(/-/, "/").replace(/-/, "/").replace(/[TZ]/g, " "))); }
+		document.getElementById('nowId').innerHTML = [dd, 'JSON=', j, 'new Date=', new Date(dd), 'dateFromJson=', dateFromJson(dd), 'JSONDate.fromJSON=', JSONDate.fromJSON(dd), 'Date.create BD=', Date.create("1971/06/06 06:30"), 'Date.create=', Date.create(j), 'Date.create.toUTC=', Date.create(j).toUTC(), 
+			'fromJSON(toJSON)', JSONDate.fromJSON(d.toJSON())
+			 ,'toJSON(fromJSON)', JSONDate.fromJSON( dd ).toJSON() ].join("<br/>");
+		return false;
+	}
+	doChange();
+	</script>
+</body>
+</html>
